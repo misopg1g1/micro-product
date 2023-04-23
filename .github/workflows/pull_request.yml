@@ -1,0 +1,26 @@
+name: Jest
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: your_username
+          POSTGRES_PASSWORD: your_password
+          POSTGRES_DB: your_test_database
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: npm install
+      - name: Run Jest
+        run: npm test
