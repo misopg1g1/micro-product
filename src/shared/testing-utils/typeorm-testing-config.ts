@@ -4,8 +4,8 @@ import { ProductEntity } from 'src/product/product.entity';
 export const TypeOrmTestingConfig = () => [
   TypeOrmModule.forRoot({
     type: 'postgres',
-    host: 'postgres',
-    //host: 'localhost',
+    //host: 'postgres',
+    host: 'localhost',
     port: 5432,
     username: 'postgres',
     password: 'postgres',
