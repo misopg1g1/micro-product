@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { BusinessError, BusinessLogicException } from 'src/shared/errors';
 import { Repository } from 'typeorm';
 import { ProductEntity } from './product.entity';
+import { QueryFailedError } from 'typeorm';
 
 @Injectable()
 export class ProductService {
@@ -11,17 +12,28 @@ export class ProductService {
     private readonly productRepository: Repository<ProductEntity>,
   ) {}
 
-  async findAll(): Promise<ProductEntity[]> {
-    return await this.productRepository.find({});
+  async findAll(skip = 0, take?: number): Promise<ProductEntity[]> {
+    let options: object = { skip };
+    if (take) {
+      options = { ...options, take: take };
+    }
+    return await this.productRepository.find(options);
   }
 
   async findOne(id: string): Promise<ProductEntity> {
-    const product: ProductEntity = await this.productRepository.findOne({
-      where: { id: id },
-    });
+    let product: ProductEntity | undefined = undefined;
+    try {
+      product = await this.productRepository.findOne({
+        where: { id: id },
+      });
+    } catch (e) {
+      if (e instanceof QueryFailedError) {
+        throw new BusinessLogicException(e.message, BusinessError.BAD_REQUEST);
+      }
+    }
     if (!product) {
       throw new BusinessLogicException(
-        'The product with the given id was not found',
+        'El producto con el id dado no fue encontrado',
         BusinessError.NOT_FOUND,
       );
     }
