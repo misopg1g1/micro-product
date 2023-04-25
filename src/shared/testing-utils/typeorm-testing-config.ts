@@ -1,15 +1,10 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductEntity } from 'src/product/product.entity';
+import { dbConfig } from '../config/dbconfig';
 
 export const TypeOrmTestingConfig = () => [
   TypeOrmModule.forRoot({
-    type: 'postgres',
-    //host: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: 'postgres',
-    password: 'postgres',
-    database: 'postgres',
+    ...dbConfig,
     dropSchema: true,
     entities: [ProductEntity],
     synchronize: true,

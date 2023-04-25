@@ -1,6 +1,7 @@
-import { Controller, Get, Param, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, UseInterceptors, Query } from '@nestjs/common';
 import { BusinessErrorsInterceptor } from 'src/shared/interceptors/business-errors.interceptor';
 import { ProductService } from './product.service';
+import { ApiQuery } from '@nestjs/swagger';
 
 @UseInterceptors(BusinessErrorsInterceptor)
 @Controller('products')
@@ -8,8 +9,10 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Get()
-  async findAll() {
-    return await this.productService.findAll();
+  @ApiQuery({ name: 'skip', required: false })
+  @ApiQuery({ name: 'take', required: false })
+  async findAll(@Query('skip') skip?: number, @Query('take') take?: number) {
+    return await this.productService.findAll(skip, take);
   }
 
   @Get(':productId')

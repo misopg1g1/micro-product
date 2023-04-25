@@ -71,7 +71,7 @@ describe('ProductService', () => {
       service.findOne(faker.datatype.uuid()),
     ).rejects.toHaveProperty(
       'message',
-      'The product with the given id was not found',
+      'El producto con el id dado no fue encontrado',
     );
   });
 });
