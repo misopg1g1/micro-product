@@ -63,6 +63,7 @@ function getExtensionFromMimeType(mimeType) {
 
   return mimeToExt[mimeType] || '';
 }
+
 @Injectable()
 export class S3Service {
   private s3: S3;
@@ -83,6 +84,15 @@ export class S3Service {
     };
 
     const response = await this.s3.upload(params).promise();
-    return response.Location;
+    return [response.Location, response.Key];
+  }
+
+  async deleteImage(Key: string) {
+    const params = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key,
+    };
+    await this.s3.deleteObject(params).promise();
+    console.log();
   }
 }

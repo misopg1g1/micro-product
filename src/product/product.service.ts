@@ -54,8 +54,10 @@ export class ProductService {
   async create(createProductDto: CreateProductDto) {
     const base64Data: string = createProductDto.img_base64_data;
     const categoriesEntities = [];
-    let img_url =
-      'https://kiranametro.com/admin/public/size_primary_images/no-image.jpg';
+    let [img_url, key] = [
+      'https://kiranametro.com/admin/public/size_primary_images/no-image.jpg',
+      undefined,
+    ];
 
     for (const catName of createProductDto.categories) {
       try {
@@ -66,9 +68,9 @@ export class ProductService {
       } catch (e) {}
     }
     try {
-      img_url = base64Data
+      [img_url, key] = base64Data
         ? await this.storageService.uploadImage(base64Data)
-        : img_url;
+        : [img_url, undefined];
     } catch (e) {
       if (e instanceof BusinessLogicException) {
         throw e;
@@ -86,6 +88,7 @@ export class ProductService {
     try {
       return await this.productRepository.save(productEntity);
     } catch (e) {
+      await this.storageService.deleteImage(key);
       if (e instanceof QueryFailedError) {
         throw new BusinessLogicException(e.message, BusinessError.BAD_REQUEST);
       }
