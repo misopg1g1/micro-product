@@ -5,22 +5,36 @@ import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { ProductService } from './product.service';
 import { ProductEntity } from './product.entity';
+import { CategoryEntity } from '../category/category.entity';
+import { plainToInstance } from 'class-transformer';
+import { CategoryService } from '../category/category.service';
+import { S3Service } from '../shared/aws/storage.service';
+import {ConfigService} from "@nestjs/config";
 
 describe('ProductService', () => {
   let service: ProductService;
-  let repository: Repository<ProductEntity>;
+  let productRepository: Repository<ProductEntity>;
+  let categoryRepository: Repository<CategoryEntity>;
   let productList: ProductEntity[];
+  let categoryList: CategoryEntity[];
 
   const seedDatabase = async () => {
-    repository.clear();
+    categoryList = [];
     productList = [];
+    for (let i = 0; i < 3; i++) {
+      const category = await categoryRepository.save({
+        name: faker.name.firstName(),
+        description: faker.lorem.lines(),
+        status: faker.datatype.boolean(),
+      });
+      categoryList.push(category);
+    }
+
     for (let i = 0; i < 5; i++) {
-      const product: ProductEntity = await repository.save({
-        id: faker.datatype.uuid(),
+      const entity = plainToInstance(ProductEntity, {
         name: faker.datatype.string(),
-        sku: faker.datatype.string(),
-        array: [],
-        type: [],
+        dimensions: [],
+        type: 1,
         temperature_control: faker.datatype.number(),
         expiration_date: faker.datatype.datetime(),
         fragility_conditions: faker.datatype.string(),
@@ -29,23 +43,49 @@ describe('ProductService', () => {
         price: faker.datatype.number(),
         img_url: faker.image.imageUrl(),
         suppliers: faker.datatype.string(),
-        category: {},
+        category: [],
       });
+      const product: ProductEntity = await productRepository.save(entity);
       productList.push(product);
+    }
+    for (const pr of productList) {
+      pr.categories = categoryList;
+      await productRepository.save(pr);
+    }
+    for (let i = 0; i < categoryList.length; i++) {
+      categoryList[i] = await categoryRepository.findOne({
+        where: {
+          id: categoryList[i].id,
+        },
+        relations: ['products'],
+      });
+    }
+
+    for (let i = 0; i < productList.length; i++) {
+      productList[i] = await productRepository.findOne({
+        where: {
+          id: productList[i].id,
+        },
+        relations: ['categories'],
+      });
     }
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ProductService],
+      providers: [ProductService, CategoryService, S3Service, ConfigService],
       imports: [...TypeOrmTestingConfig()],
     }).compile();
 
     service = module.get<ProductService>(ProductService);
-    repository = module.get<Repository<ProductEntity>>(
+    productRepository = module.get<Repository<ProductEntity>>(
       getRepositoryToken(ProductEntity),
     );
+    categoryRepository = module.get<Repository<CategoryEntity>>(
+      getRepositoryToken(CategoryEntity),
+    );
     await seedDatabase();
+    console.log();
   });
 
   it('should be defined', () => {
@@ -53,9 +93,9 @@ describe('ProductService', () => {
   });
 
   it('findAll should return all cultures', async () => {
-    const cultures: ProductEntity[] = await service.findAll();
-    expect(cultures).not.toBeNull();
-    expect(cultures).toHaveLength(productList.length);
+    const products: ProductEntity[] = await service.findAll();
+    expect(products).not.toBeNull();
+    expect(products).toHaveLength(productList.length);
   });
 
   it('findOne should return a culture by id', async () => {

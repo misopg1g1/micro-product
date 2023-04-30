@@ -1,7 +1,16 @@
-import { Controller, Get, Param, UseInterceptors, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  UseInterceptors,
+  Query,
+  Body,
+  Post,
+} from '@nestjs/common';
 import { BusinessErrorsInterceptor } from 'src/shared/interceptors/business-errors.interceptor';
 import { ProductService } from './product.service';
 import { ApiQuery } from '@nestjs/swagger';
+import { CreateProductDto } from './product.dto';
 
 @UseInterceptors(BusinessErrorsInterceptor)
 @Controller('products')
@@ -18,5 +27,10 @@ export class ProductController {
   @Get(':productId')
   async findOne(@Param('productId') productId: string) {
     return await this.productService.findOne(productId);
+  }
+
+  @Post()
+  async create(@Body() createProductDto: CreateProductDto) {
+    return await this.productService.create(createProductDto);
   }
 }
