@@ -1,14 +1,17 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { CategoryEntity } from '../category/category.entity';
+import { v4 as uuidv4 } from 'uuid';
 
-enum ProductType {
+export enum ProductType {
   PERISHABLE = 'PERISHABLE',
   NONPERISHABLE = 'NONPERISHABLE',
-}
-
-interface Category {
-  name: string;
-  description: string;
-  status: boolean;
 }
 
 @Entity()
@@ -16,17 +19,17 @@ export class ProductEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @Column()
   sku: string;
 
-  @Column('int', { array: true })
-  array: number[];
+  @Column()
+  dimensions: string;
 
-  @Column('int', { array: true })
-  type: ProductType[];
+  @Column('varchar')
+  type: ProductType;
 
   @Column()
   temperature_control: number;
@@ -52,6 +55,12 @@ export class ProductEntity {
   @Column()
   suppliers: string;
 
-  @Column('json', { nullable: true })
-  category: Record<string, any>;
+  @ManyToMany(() => CategoryEntity, (category) => category.products)
+  @JoinTable()
+  categories: CategoryEntity[];
+
+  @BeforeInsert()
+  generateSKU() {
+    this.sku = uuidv4();
+  }
 }

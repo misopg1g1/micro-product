@@ -1,4 +1,5 @@
-import { ProductEntity } from 'src/product/product.entity';
+import { ProductEntity } from '../../product/product.entity';
+import { CategoryEntity } from '../../category/category.entity';
 
 export const dbConfig: object = {
   type: process.env.DB_TYPE ? process.env.DB_TYPE : 'postgres',
@@ -7,6 +8,5 @@ export const dbConfig: object = {
   username: process.env.DB_USERNAME ? process.env.DB_USERNAME : 'postgres',
   password: process.env.DB_PASSWORD ? process.env.DB_PASSWORD : 'postgres',
   database: process.env.DB_NAME ? process.env.DB_NAME : 'postgres',
-  entities: [ProductEntity],
   synchronize: true,
 };
