@@ -1,16 +1,19 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
-  UseInterceptors,
-  Query,
-  Body,
   Post,
+  Query,
+  UseInterceptors,
+    ParseBoolPipe
 } from '@nestjs/common';
 import { BusinessErrorsInterceptor } from 'src/shared/interceptors/business-errors.interceptor';
 import { ProductService } from './product.service';
 import { ApiQuery } from '@nestjs/swagger';
-import { CreateProductDto } from './product.dto';
+import { CreateProductDto, GetProductDto } from './product.dto';
+import { plainToInstance } from 'class-transformer';
+
 
 @UseInterceptors(BusinessErrorsInterceptor)
 @Controller('products')
@@ -20,13 +23,24 @@ export class ProductController {
   @Get()
   @ApiQuery({ name: 'skip', required: false })
   @ApiQuery({ name: 'take', required: false })
-  async findAll(@Query('skip') skip?: number, @Query('take') take?: number) {
-    return await this.productService.findAll(skip, take);
+  @ApiQuery({ name: 'relations', required: false, type: Boolean })
+  async findAll(
+    @Query('skip') skip?: number,
+    @Query('take') take?: number,
+    @Query('relations', ParseBoolPipe) relations = false,
+  ) {
+    const products = await this.productService.findAll(skip, relations, take);
+    return plainToInstance(GetProductDto, products);
   }
 
   @Get(':productId')
-  async findOne(@Param('productId') productId: string) {
-    return await this.productService.findOne(productId);
+  @ApiQuery({ name: 'relations', required: false, type: Boolean })
+  async findOne(
+    @Param('productId') productId: string,
+    @Query('relations', ParseBoolPipe) relations = false,
+  ) {
+    const product = await this.productService.findOne(productId, relations);
+    return plainToInstance(GetProductDto, product);
   }
 
   @Post()

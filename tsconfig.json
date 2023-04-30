@@ -20,17 +20,5 @@
     "strict": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "compilerOptions": {
-      "module": "commonjs",
-      "target": "es2017",
-      "sourceMap": true,
-      "outDir": "dist",
-      "strict": true,
-      "esModuleInterop": true
-    },
-    "include": [
-      "src/**/*",
-      "node_modules/**/*"
-    ]
   }
 }

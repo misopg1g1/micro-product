@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ProductType } from './product.entity';
+import { Transform } from 'class-transformer';
 
 function getActualStringDate() {
   const d = new Date(Date.now());
@@ -72,4 +73,62 @@ export class CreateProductDto {
   @IsArray()
   @IsOptional()
   categories: string[] = [];
+}
+
+export class GetProductDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsArray()
+  @IsNotEmpty()
+  @Transform((dimensions) => {
+    const reg = new RegExp('("|{|})', 'g');
+    return dimensions.value
+      .replace(reg, '')
+      .split(',')
+      .map((n) => Number(n));
+  })
+  dimensions: number[];
+
+  @IsEnum(ProductType)
+  type: ProductType;
+
+  @IsNumber()
+  @IsNotEmpty()
+  temperature_control = 0;
+
+  @IsString()
+  @IsNotEmpty()
+  expiration_date: string;
+
+  @IsString()
+  @IsNotEmpty()
+  fragility_conditions: string;
+
+  @IsString()
+  @IsNotEmpty()
+  description: string;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  status: boolean;
+
+  @IsNumber()
+  price: number;
+
+  @IsString()
+  @IsNotEmpty()
+  img_url: string;
+
+  @IsArray()
+  @IsOptional()
+  @Transform((dimensions) => {
+    const reg = new RegExp('("|{|})', 'g');
+    return dimensions.value.replace(reg, '').split(',');
+  })
+  suppliers: string[];
+
+  @IsArray()
+  categories: any[];
 }

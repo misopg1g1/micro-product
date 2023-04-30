@@ -18,19 +18,24 @@ export class ProductService {
     private categoryService: CategoryService,
   ) {}
 
-  async findAll(skip = 0, take?: number): Promise<ProductEntity[]> {
-    let options: object = { skip };
+  async findAll(
+    skip = 0,
+    relations: boolean,
+    take?: number,
+  ): Promise<ProductEntity[]> {
+    let options: object = { skip, relations: relations ? ['categories'] : [] };
     if (take) {
       options = { ...options, take: take };
     }
     return await this.productRepository.find(options);
   }
 
-  async findOne(id: string): Promise<ProductEntity> {
+  async findOne(id: string, relations: boolean): Promise<ProductEntity> {
     let product: ProductEntity | undefined = undefined;
     try {
       product = await this.productRepository.findOne({
         where: { id: id },
+        relations: relations ? ['categories'] : [],
       });
     } catch (e) {
       if (e instanceof QueryFailedError) {
@@ -48,7 +53,6 @@ export class ProductService {
 
   async create(createProductDto: CreateProductDto) {
     const base64Data: string = createProductDto.img_base64_data;
-    const suppliers = createProductDto.suppliers.join(' | ');
     const categoriesEntities = [];
     let img_url =
       'https://kiranametro.com/admin/public/size_primary_images/no-image.jpg';
@@ -74,11 +78,17 @@ export class ProductService {
     const productObj = {
       ...createProductDto,
       img_url,
-      suppliers,
       categories: categoriesEntities,
     };
     delete productObj.img_base64_data;
     const productEntity = plainToInstance(ProductEntity, productObj);
-    return await this.productRepository.save(productEntity);
+
+    try {
+      return await this.productRepository.save(productEntity);
+    } catch (e) {
+      if (e instanceof QueryFailedError) {
+        throw new BusinessLogicException(e.message, BusinessError.BAD_REQUEST);
+      }
+    }
   }
 }
