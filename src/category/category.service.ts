@@ -25,9 +25,11 @@ export class CategoryService {
     private repository: Repository<CategoryEntity>,
   ) {}
 
-  async findAll() {
+  async findAll(relations: boolean) {
     try {
-      return await this.repository.find();
+      return await this.repository.find({
+        relations: relations ? ['products'] : [],
+      });
     } catch (e) {
       if (e instanceof EntityMetadataNotFoundError) {
         return [];

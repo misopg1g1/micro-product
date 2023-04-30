@@ -1,10 +1,19 @@
-import {Body, Controller, Get, Param, Patch, Post, Query, UseInterceptors,} from '@nestjs/common';
-import {CategoryService} from './category.service';
-import {ApiQuery} from '@nestjs/swagger';
-import {CategoryDto, PatchCategoryDto} from './category.dto';
-import {plainToInstance} from 'class-transformer';
-import {CategoryEntity} from './category.entity';
-import {BusinessErrorsInterceptor} from '../shared/interceptors/business-errors.interceptor';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
+import { CategoryService } from './category.service';
+import { ApiQuery } from '@nestjs/swagger';
+import { CategoryDto, PatchCategoryDto } from './category.dto';
+import { plainToInstance } from 'class-transformer';
+import { CategoryEntity } from './category.entity';
+import { BusinessErrorsInterceptor } from '../shared/interceptors/business-errors.interceptor';
 
 @UseInterceptors(BusinessErrorsInterceptor)
 @Controller('categories')
@@ -18,12 +27,19 @@ export class CategoryController {
   async find(
     @Query('categoryId') id?: string,
     @Query('name') name?: string,
-    @Query('relations') relations = true,
+    @Query('relations') relations: any = true,
   ) {
+    let transformedRelations = relations;
+    if (typeof relations === 'string') {
+      transformedRelations = JSON.parse(relations.toLowerCase());
+    }
     if (id || name) {
-      return await this.service.findOne({ where: { id, name }, relations });
+      return await this.service.findOne({
+        where: { id, name },
+        relations: transformedRelations,
+      });
     } else {
-      return await this.service.findAll();
+      return await this.service.findAll(transformedRelations);
     }
   }
 
