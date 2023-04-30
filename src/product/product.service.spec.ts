@@ -93,14 +93,17 @@ describe('ProductService', () => {
   });
 
   it('findAll should return all cultures', async () => {
-    const products: ProductEntity[] = await service.findAll();
+    const products: ProductEntity[] = await service.findAll(0, false);
     expect(products).not.toBeNull();
     expect(products).toHaveLength(productList.length);
   });
 
   it('findOne should return a culture by id', async () => {
     const storedProduct: ProductEntity = productList[0];
-    const product: ProductEntity = await service.findOne(storedProduct.id);
+    const product: ProductEntity = await service.findOne(
+      storedProduct.id,
+      false,
+    );
     expect(product).not.toBeNull();
     expect(product.name).toEqual(storedProduct.name);
     expect(product.description).toEqual(storedProduct.description);
@@ -108,7 +111,7 @@ describe('ProductService', () => {
 
   it('findOne should throw an exception for an invalid culture', async () => {
     await expect(() =>
-      service.findOne(faker.datatype.uuid()),
+      service.findOne(faker.datatype.uuid(), false),
     ).rejects.toHaveProperty(
       'message',
       'El producto con el id dado no fue encontrado',
