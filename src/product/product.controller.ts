@@ -22,13 +22,16 @@ export class ProductController {
   @Get()
   @ApiQuery({ name: 'skip', required: false })
   @ApiQuery({ name: 'take', required: false })
-  @ApiQuery({ name: 'relations', required: false, type: Boolean })
+  @ApiQuery({ name: 'relations', required: false, type: Boolean || String })
   async findAll(
     @Query('skip') skip?: number,
     @Query('take') take?: number,
-    @Query('relations') relations = false,
+    @Query('relations') relations: any = false,
   ) {
-    const transformedRelations = JSON.parse(String(relations));
+    let transformedRelations = relations;
+    if (typeof relations === 'string') {
+      transformedRelations = JSON.parse(relations.toLowerCase());
+    }
     const products = await this.productService.findAll(
       skip,
       transformedRelations,
@@ -41,9 +44,12 @@ export class ProductController {
   @ApiQuery({ name: 'relations', required: false, type: Boolean })
   async findOne(
     @Param('productId') productId: string,
-    @Query('relations') relations = false,
+    @Query('relations') relations: any = false,
   ) {
-    const transformedRelations = JSON.parse(String(relations));
+    let transformedRelations = relations;
+    if (typeof relations === 'string') {
+      transformedRelations = JSON.parse(relations.toLowerCase());
+    }
     const product = await this.productService.findOne(
       productId,
       transformedRelations,
