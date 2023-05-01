@@ -34,7 +34,7 @@ export class ProductEntity {
   @Column('varchar')
   type: ProductType;
 
-  @Column()
+  @Column({ nullable: true })
   temperature_control: number;
 
   @Column({ default: getOldestStringDate() })
