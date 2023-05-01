@@ -12,7 +12,7 @@ export class CategoryEntity {
   @Column()
   description: string;
 
-  @Column()
+  @Column({ default: true })
   status: boolean;
 
   @ManyToMany(() => ProductEntity, (product) => product.categories)

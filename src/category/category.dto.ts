@@ -5,32 +5,30 @@ export class CategoryDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  readonly name: string;
+  name: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  readonly description: string;
+  description: string;
 
   @ApiProperty({ default: true })
   @IsBoolean()
-  @IsOptional()
-  readonly status: boolean = true;
+  status = true;
 }
 
 export class PatchCategoryDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
-  readonly name: string;
+  name: string;
 
   @ApiProperty()
   @IsString()
   @IsOptional()
-  readonly description: string;
+  description: string;
 
   @ApiProperty({ default: true })
   @IsBoolean()
-  @IsOptional()
-  readonly status: boolean = true;
+  status = true;
 }
