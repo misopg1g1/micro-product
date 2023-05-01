@@ -67,13 +67,15 @@ export class ProductService {
         categoriesEntities.push(cat);
       } catch (e) {}
     }
-    try {
-      [img_url, key] = base64Data
-        ? await this.storageService.uploadImage(base64Data)
-        : [img_url, undefined];
-    } catch (e) {
-      if (e instanceof BusinessLogicException) {
-        throw e;
+    if (base64Data) {
+      try {
+        [img_url, key] = base64Data
+          ? await this.storageService.uploadImage(base64Data)
+          : [img_url, undefined];
+      } catch (e) {
+        if (e instanceof BusinessLogicException) {
+          throw e;
+        }
       }
     }
 
@@ -88,7 +90,10 @@ export class ProductService {
     try {
       return await this.productRepository.save(productEntity);
     } catch (e) {
-      await this.storageService.deleteImage(key);
+      if (key) {
+        await this.storageService.deleteImage(key);
+      }
+
       if (e instanceof QueryFailedError) {
         throw new BusinessLogicException(e.message, BusinessError.BAD_REQUEST);
       }
