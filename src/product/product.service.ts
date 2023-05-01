@@ -85,16 +85,17 @@ export class ProductService {
       categories: categoriesEntities,
     };
     delete productObj.img_base64_data;
-    const productEntity = plainToInstance(ProductEntity, productObj);
 
     try {
-      return await this.productRepository.save(productEntity);
-    } catch (e) {
+      return await this.productRepository.save(productObj);
+    } catch (e: any) {
       if (key) {
         await this.storageService.deleteImage(key);
       }
 
       if (e instanceof QueryFailedError) {
+        throw new BusinessLogicException(e.message, BusinessError.BAD_REQUEST);
+      } else {
         throw new BusinessLogicException(e.message, BusinessError.BAD_REQUEST);
       }
     }

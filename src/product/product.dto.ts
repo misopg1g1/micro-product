@@ -66,9 +66,9 @@ export class CreateProductDto {
   img_base64_data = '';
 
   @ApiProperty()
-  @IsArray()
+  @IsString()
   @IsOptional()
-  suppliers: string[] = [];
+  suppliers = '';
 
   @ApiProperty()
   @IsArray()
