@@ -25,7 +25,7 @@ export class ProductEntity {
   @Column({ unique: true })
   name: string;
 
-  @Column()
+  @Column({ default: uuidv4() })
   sku: string;
 
   @Column({ default: '' })
@@ -37,25 +37,25 @@ export class ProductEntity {
   @Column({ nullable: true })
   temperature_control: number;
 
-  @Column({ default: getOldestStringDate() })
+  @Column({ default: getOldestStringDate(), nullable: true })
   expiration_date: Date;
 
-  @Column({ default: '' })
+  @Column({ default: '', nullable: true })
   fragility_conditions: string;
 
-  @Column({ default: '' })
+  @Column({ default: '', nullable: true })
   description: string;
 
-  @Column({ default: true })
+  @Column({ default: true, nullable: true })
   status: boolean;
 
   @Column()
   price: number;
 
-  @Column()
+  @Column({ default: '', nullable: true })
   img_url: string;
 
-  @Column({ default: '' })
+  @Column({ default: '', nullable: true })
   suppliers: string;
 
   @ManyToMany(() => CategoryEntity, (category) => category.products)
