@@ -25,7 +25,7 @@ export class CreateProductDto {
   @ApiProperty({ default: '' })
   @IsString()
   @IsOptional()
-  dimensions: string = '';
+  dimensions = '';
 
   @ApiProperty({ default: 'PERISHABLE' })
   @IsEnum(ProductType)
