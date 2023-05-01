@@ -16,6 +16,7 @@ function getOldestStringDate() {
   const d = new Date(0);
   return d.toISOString();
 }
+
 export class CreateProductDto {
   @ApiProperty()
   @IsString()
@@ -77,52 +78,61 @@ export class CreateProductDto {
 }
 
 export class GetProductDto {
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   name: string;
 
+  @ApiProperty({ default: '' })
   @IsString()
-  @IsNotEmpty()
-  dimensions: string;
+  @IsOptional()
+  dimensions = '';
 
+  @ApiProperty({ default: 'PERISHABLE' })
   @IsEnum(ProductType)
   type: ProductType;
 
+  @ApiProperty()
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   temperature_control = 0;
 
+  @ApiProperty({ default: getOldestStringDate() })
   @IsString()
-  @IsNotEmpty()
-  expiration_date: string;
+  @IsOptional()
+  expiration_date: string = getOldestStringDate();
 
+  @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  fragility_conditions: string;
+  @IsOptional()
+  fragility_conditions = '';
 
+  @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  description: string;
+  @IsOptional()
+  description = '';
 
+  @ApiProperty()
   @IsBoolean()
-  @IsNotEmpty()
-  status: boolean;
+  @IsOptional()
+  status = true;
 
+  @ApiProperty()
   @IsNumber()
   price: number;
 
+  @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  img_url: string;
+  @IsOptional()
+  img_base64_data = '';
 
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  suppliers = '';
+
+  @ApiProperty()
   @IsArray()
   @IsOptional()
-  @Transform((dimensions) => {
-    const reg = new RegExp('("|{|})', 'g');
-    return dimensions.value.replace(reg, '').split(',');
-  })
-  suppliers: string[];
-
-  @IsArray()
-  categories: any[];
+  categories: string[] = [];
 }
