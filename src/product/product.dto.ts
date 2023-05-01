@@ -12,8 +12,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ProductType } from './product.entity';
 import { Transform } from 'class-transformer';
 
-function getActualStringDate() {
-  const d = new Date(Date.now());
+function getOldestStringDate() {
+  const d = new Date(0);
   return d.toISOString();
 }
 export class CreateProductDto {
@@ -22,10 +22,10 @@ export class CreateProductDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ default: [] })
-  @IsArray()
-  @IsNotEmpty()
-  dimensions: number[];
+  @ApiProperty({ default: '' })
+  @IsString()
+  @IsOptional()
+  dimensions = '';
 
   @ApiProperty({ default: 'PERISHABLE' })
   @IsEnum(ProductType)
@@ -36,9 +36,10 @@ export class CreateProductDto {
   @IsOptional()
   temperature_control = 0;
 
-  @ApiProperty({ default: getActualStringDate() })
+  @ApiProperty({ default: getOldestStringDate() })
   @IsString()
-  expiration_date: string;
+  @IsOptional()
+  expiration_date: string = getOldestStringDate();
 
   @ApiProperty()
   @IsString()
@@ -80,16 +81,9 @@ export class GetProductDto {
   @IsNotEmpty()
   name: string;
 
-  @IsArray()
+  @IsString()
   @IsNotEmpty()
-  @Transform((dimensions) => {
-    const reg = new RegExp('("|{|})', 'g');
-    return dimensions.value
-      .replace(reg, '')
-      .split(',')
-      .map((n) => Number(n));
-  })
-  dimensions: number[];
+  dimensions: string;
 
   @IsEnum(ProductType)
   type: ProductType;
