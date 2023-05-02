@@ -75,6 +75,19 @@ export class CreateProductDto {
   @IsArray()
   @IsOptional()
   categories: string[] = [];
+
+  constructor(partial: Partial<CreateProductDto> = {}) {
+    Object.assign(this, partial);
+    this.expiration_date = this.expiration_date ?? getOldestStringDate(); // default value
+    this.dimensions = '';
+    this.temperature_control = 0;
+    this.fragility_conditions = '';
+    this.description = '';
+    this.status = true;
+    this.img_base64_data = '';
+    this.suppliers = '';
+    this.categories = [];
+  }
 }
 
 export class GetProductDto {

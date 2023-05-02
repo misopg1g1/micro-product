@@ -13,10 +13,7 @@ export enum ProductType {
   PERISHABLE = 'PERISHABLE',
   NONPERISHABLE = 'NONPERISHABLE',
 }
-function getOldestStringDate() {
-  const d = new Date(0);
-  return d.toISOString();
-}
+
 @Entity()
 export class ProductEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -25,37 +22,37 @@ export class ProductEntity {
   @Column({ unique: true })
   name: string;
 
-  @Column({ default: uuidv4() })
+  @Column()
   sku: string;
 
-  @Column({ default: '' })
+  @Column()
   dimensions: string;
 
   @Column('varchar')
   type: ProductType;
 
-  @Column({ nullable: true })
+  @Column()
   temperature_control: number;
 
-  @Column({ default: getOldestStringDate(), nullable: true })
+  @Column()
   expiration_date: Date;
 
-  @Column({ default: '', nullable: true })
+  @Column()
   fragility_conditions: string;
 
-  @Column({ default: '', nullable: true })
+  @Column()
   description: string;
 
-  @Column({ default: true, nullable: true })
+  @Column()
   status: boolean;
 
   @Column()
   price: number;
 
-  @Column({ default: '', nullable: true })
+  @Column()
   img_url: string;
 
-  @Column({ default: '', nullable: true })
+  @Column()
   suppliers: string;
 
   @ManyToMany(() => CategoryEntity, (category) => category.products)

@@ -6,7 +6,7 @@ import {
   Post,
   Query,
   UseInterceptors,
-  ParseBoolPipe,
+  ParseBoolPipe, HttpCode, Delete,
 } from '@nestjs/common';
 import { BusinessErrorsInterceptor } from 'src/shared/interceptors/business-errors.interceptor';
 import { ProductService } from './product.service';
@@ -60,5 +60,12 @@ export class ProductController {
   @Post()
   async create(@Body() createProductDto: CreateProductDto) {
     return await this.productService.create(createProductDto);
+  }
+
+  @Delete(':productId')
+  @HttpCode(204)
+  async delete(@Param('productId') productId: string) {
+    await this.productService.delete(productId);
+    console.log();
   }
 }
