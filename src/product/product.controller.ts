@@ -6,12 +6,14 @@ import {
   Post,
   Query,
   UseInterceptors,
-  ParseBoolPipe, HttpCode, Delete,
+  ParseBoolPipe,
+  HttpCode,
+  Delete,
 } from '@nestjs/common';
 import { BusinessErrorsInterceptor } from 'src/shared/interceptors/business-errors.interceptor';
 import { ProductService } from './product.service';
 import { ApiQuery } from '@nestjs/swagger';
-import { CreateProductDto, GetProductDto } from './product.dto';
+import { CreateProductDto } from './product.dto';
 import { plainToInstance } from 'class-transformer';
 
 @UseInterceptors(BusinessErrorsInterceptor)
@@ -37,7 +39,7 @@ export class ProductController {
       transformedRelations,
       take,
     );
-    return plainToInstance(GetProductDto, products);
+    return products;
   }
 
   @Get(':productId')
@@ -54,7 +56,7 @@ export class ProductController {
       productId,
       transformedRelations,
     );
-    return plainToInstance(GetProductDto, product);
+    return product;
   }
 
   @Post()
@@ -66,6 +68,5 @@ export class ProductController {
   @HttpCode(204)
   async delete(@Param('productId') productId: string) {
     await this.productService.delete(productId);
-    console.log();
   }
 }
