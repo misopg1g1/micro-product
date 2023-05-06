@@ -1,20 +1,18 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
   Post,
   Query,
   UseInterceptors,
-  ParseBoolPipe,
-  HttpCode,
-  Delete,
 } from '@nestjs/common';
 import { BusinessErrorsInterceptor } from 'src/shared/interceptors/business-errors.interceptor';
 import { ProductService } from './product.service';
 import { ApiQuery } from '@nestjs/swagger';
 import { CreateProductDto } from './product.dto';
-import { plainToInstance } from 'class-transformer';
 
 @UseInterceptors(BusinessErrorsInterceptor)
 @Controller('products')
@@ -34,12 +32,7 @@ export class ProductController {
     if (typeof relations === 'string') {
       transformedRelations = JSON.parse(relations.toLowerCase());
     }
-    const products = await this.productService.findAll(
-      skip,
-      transformedRelations,
-      take,
-    );
-    return products;
+    return await this.productService.findAll(skip, transformedRelations, take);
   }
 
   @Get(':productId')

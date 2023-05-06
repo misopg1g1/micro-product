@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import { TypeOrmTestingConfig } from '../shared/testing-utils/typeorm-testing-config';
 import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
@@ -9,12 +9,34 @@ import { CategoryEntity } from '../category/category.entity';
 import { plainToInstance } from 'class-transformer';
 import { CategoryService } from '../category/category.service';
 import { S3Service } from '../shared/aws/storage.service';
-import {ConfigService} from "@nestjs/config";
+import { ConfigService } from '@nestjs/config';
+import { CreateProductDto } from './product.dto';
+import { readFileSync } from 'fs';
+import { S3 } from 'aws-sdk';
 
+const getBase64 = (file): any => {
+  return readFileSync(file, { encoding: 'base64' });
+};
+const createMockProduct = () => ({
+  name: faker.datatype.string(),
+  dimensions: [],
+  type: 1,
+  temperature_control: faker.datatype.number(),
+  expiration_date: faker.datatype.datetime(),
+  fragility_conditions: faker.datatype.string(),
+  description: faker.datatype.string(),
+  status: faker.datatype.boolean(),
+  price: faker.datatype.number(),
+  img_url: faker.image.imageUrl(),
+  suppliers: faker.datatype.string(),
+  categories: [],
+});
 describe('ProductService', () => {
+  const entities = [ProductEntity, CategoryEntity];
   let service: ProductService;
   let productRepository: Repository<ProductEntity>;
   let categoryRepository: Repository<CategoryEntity>;
+  let awsService: S3Service;
   let productList: ProductEntity[];
   let categoryList: CategoryEntity[];
 
@@ -31,20 +53,7 @@ describe('ProductService', () => {
     }
 
     for (let i = 0; i < 5; i++) {
-      const entity = plainToInstance(ProductEntity, {
-        name: faker.datatype.string(),
-        dimensions: [],
-        type: 1,
-        temperature_control: faker.datatype.number(),
-        expiration_date: faker.datatype.datetime(),
-        fragility_conditions: faker.datatype.string(),
-        description: faker.datatype.string(),
-        status: faker.datatype.boolean(),
-        price: faker.datatype.number(),
-        img_url: faker.image.imageUrl(),
-        suppliers: faker.datatype.string(),
-        category: [],
-      });
+      const entity = plainToInstance(ProductEntity, createMockProduct());
       const product: ProductEntity = await productRepository.save(entity);
       productList.push(product);
     }
@@ -72,12 +81,22 @@ describe('ProductService', () => {
   };
 
   beforeEach(async () => {
+    const options = () => {
+      return {
+        ...TypeOrmTestingConfig(),
+        entities: entities,
+      };
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [ProductService, CategoryService, S3Service, ConfigService],
-      imports: [...TypeOrmTestingConfig()],
+      imports: [
+        TypeOrmModule.forRoot(options()),
+        TypeOrmModule.forFeature(entities),
+      ],
     }).compile();
 
     service = module.get<ProductService>(ProductService);
+    awsService = module.get<S3Service>(S3Service);
     productRepository = module.get<Repository<ProductEntity>>(
       getRepositoryToken(ProductEntity),
     );
@@ -85,7 +104,6 @@ describe('ProductService', () => {
       getRepositoryToken(CategoryEntity),
     );
     await seedDatabase();
-    console.log();
   });
 
   it('should be defined', () => {
@@ -116,5 +134,79 @@ describe('ProductService', () => {
       'message',
       'El producto con el id dado no fue encontrado',
     );
+  });
+
+  it('Creating a product should succeed and return a new product', async () => {
+    const newProductDto = plainToInstance(
+      CreateProductDto,
+      createMockProduct(),
+    );
+    newProductDto.categories = [categoryList[0].name];
+    const createdProduct = await service.create(newProductDto);
+    const products: ProductEntity[] = await service.findAll(0, false);
+    expect(products.length).toEqual(6);
+    expect(createdProduct.name).toEqual(newProductDto.name);
+    expect(createdProduct.img_url).toEqual(
+      'https://kiranametro.com/admin/public/size_primary_images/no-image.jpg',
+    );
+  });
+
+  it('Should create a new product with new image', async () => {
+    const s3Mock = {
+      upload: jest.fn().mockImplementation(() => {
+        return {
+          promise: jest.fn().mockResolvedValue({
+            ETag: 'mocked ETag',
+            Location: 'mocked Location',
+          }),
+        };
+      }),
+    };
+    jest.spyOn(S3.prototype, 'upload').mockReturnValueOnce(s3Mock.upload());
+    const newProductDto = plainToInstance(
+      CreateProductDto,
+      createMockProduct(),
+    );
+    newProductDto.categories = [categoryList[0].name];
+    newProductDto.img_base64_data = getBase64('static/images.png');
+    const createdProduct = await service.create(newProductDto);
+    const products: ProductEntity[] = await service.findAll(0, false);
+    expect(products.length).toEqual(6);
+    expect(createdProduct.name).toEqual(newProductDto.name);
+    expect(createdProduct.img_url).toEqual('mocked Location');
+  });
+
+  it('Should delete an image if product creation process fails', async () => {
+    const s3Mock = {
+      upload: jest.fn().mockImplementation(() => {
+        return {
+          promise: jest.fn().mockResolvedValue({
+            Key: 'some key',
+            ETag: 'mocked ETag',
+            Location: 'mocked Location',
+          }),
+        };
+      }),
+
+      deleteImage: jest.fn().mockResolvedValue('something'),
+    };
+    jest.spyOn(S3.prototype, 'upload').mockReturnValueOnce(s3Mock.upload());
+    console.log(S3.prototype.deleteObject);
+    jest
+      .spyOn(S3Service.prototype, 'deleteImage')
+      .mockReturnValueOnce(s3Mock.deleteImage());
+    const mockedProduct = createMockProduct();
+    const newProductDto = plainToInstance(CreateProductDto, mockedProduct);
+    newProductDto.categories = [categoryList[0].name];
+    newProductDto.img_base64_data = getBase64('static/images.png');
+    await service.create(newProductDto);
+    try {
+      await service.create(newProductDto);
+    } catch {
+      console.log();
+    }
+    const products: ProductEntity[] = await service.findAll(0, false);
+    expect(products.length).toEqual(6);
+    expect(s3Mock.deleteImage).toBeCalled();
   });
 });
