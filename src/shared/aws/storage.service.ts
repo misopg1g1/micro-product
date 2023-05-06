@@ -66,7 +66,7 @@ function getExtensionFromMimeType(mimeType) {
 
 @Injectable()
 export class S3Service {
-  private s3: S3;
+  public s3: S3;
 
   constructor(private configService: ConfigService) {
     this.s3 = new S3();
@@ -93,6 +93,5 @@ export class S3Service {
       Key,
     };
     await this.s3.deleteObject(params).promise();
-    console.log();
   }
 }
