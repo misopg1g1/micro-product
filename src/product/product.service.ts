@@ -85,9 +85,12 @@ export class ProductService {
       categories: categoriesEntities,
     };
     delete productObj.img_base64_data;
-
+    const productEntity: ProductEntity = plainToInstance(
+      ProductEntity,
+      productObj,
+    );
     try {
-      return await this.productRepository.save(productObj);
+      return await this.productRepository.save(productEntity);
     } catch (e: any) {
       if (key) {
         await this.storageService.deleteImage(key);
@@ -99,5 +102,10 @@ export class ProductService {
         throw new BusinessLogicException(e.message, BusinessError.BAD_REQUEST);
       }
     }
+  }
+
+  async delete(productId: string) {
+    const product = await this.findOne(productId, false);
+    await this.productRepository.remove(product);
   }
 }
