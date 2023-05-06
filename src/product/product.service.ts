@@ -95,12 +95,7 @@ export class ProductService {
       if (key) {
         await this.storageService.deleteImage(key);
       }
-
-      if (e instanceof QueryFailedError) {
-        throw new BusinessLogicException(e.message, BusinessError.BAD_REQUEST);
-      } else {
-        throw new BusinessLogicException(e.message, BusinessError.BAD_REQUEST);
-      }
+      throw new BusinessLogicException(e.message, BusinessError.BAD_REQUEST);
     }
   }
 
