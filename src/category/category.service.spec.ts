@@ -7,12 +7,12 @@ import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
 import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
-import { CategoryDto } from './category.dto';
+import { CategoryDto, PatchCategoryDto } from './category.dto';
 
 describe('CategoryService', () => {
   const entities = [ProductEntity, CategoryEntity];
   let service: CategoryService;
-  let categoryList;
+  let categoryList: CategoryEntity[];
   let categoryRepository: Repository<CategoryEntity>;
   const createMockCategory = () => ({
     name: faker.name.firstName(),
@@ -75,5 +75,18 @@ describe('CategoryService', () => {
     expect(createdCategory.name).toEqual(mockCategory.name);
     const categories = await service.findAll(false);
     expect(categories.length).toEqual(4);
+  });
+
+  it('Should edit an exiting category', async () => {
+    const relevantCategory = categoryList[0];
+    const patchCategoryDto = plainToInstance(PatchCategoryDto, {
+      name: 'new name',
+    });
+    await service.editCategory(relevantCategory.id, patchCategoryDto);
+    const searchedCategory: CategoryEntity = await service.findOne({
+      where: { id: relevantCategory.id },
+      relations: false,
+    });
+    expect(searchedCategory.name).toEqual('new name');
   });
 });
